@@ -19,8 +19,10 @@ Unlike legacy file utilities that slow down the browser under heavy loads, this 
 ## 📂 Project Structure
 
 ```text
-├── index.html     # Single monolithic file containing all structure, styles, and logic.
-└── README.md      # Project documentation.
+├── index.html     # Single file containing all tool code.
+├── README.md      # Project documentation and user guide.
+├── .gitignore     # Prevents hidden operating system clutter files.
+└── LICENSE        # Grants open-source software usage permissions.
 ```
 
 ## ⚡ Quick Start

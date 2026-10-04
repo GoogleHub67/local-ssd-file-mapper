@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Local SSD File Directory Mapper</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #121212; color: #e0e0e0; padding: 25px; }
+        .btn { padding: 12px 20px; background: #007acc; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .btn:hover { background: #0062a3; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 25px; }
+        .card { padding: 20px; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .card:hover { background: #2a2a2a; border-color: #007acc; }
+        .icon { font-size: 2.5rem; margin-bottom: 8px; display: block; }
+        .file-name { font-size: 0.9rem; word-break: break-all; font-weight: 500; }
+        #path-display { color: #8ab4f8; margin-top: 15px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <h1>🗂️ Local SSD File Mapper</h1>
+    <p>Select any folder or drive partition to map its contents locally.</p>
+    <button class="btn" id="picker-btn">Select Directory</button>
+    <div id="path-display"></div>
+
+    <div class="grid" id="dir-container"></div>
+
+    <script>
+        const container = document.getElementById('dir-container');
+        const pathDisplay = document.getElementById('path-display');
+
+        document.getElementById('picker-btn').addEventListener('click', async () => {
+            try {
+                // Open native browser directory picker
+                const dirHandle = await window.showDirectoryPicker();
+                pathDisplay.innerText = `Mapping: ${dirHandle.name}/`;
+                await renderDirectory(dirHandle);
+            } catch (err) {
+                console.error("Directory selection cancelled or failed:", err);
+            }
+        });
+
+        async function renderDirectory(dirHandle) {
+            container.innerHTML = '';
+
+            // Enumerate files and folders using the File System API
+            for await (const entry of dirHandle.values()) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <span class="icon">${entry.kind === 'directory' ? '📁' : '📄'}</span>
+                    <span class="file-name">${entry.name}</span>
+                `;
+
+                card.onclick = async () => {
+                    if (entry.kind === 'directory') {
+                        // If it's a folder, update directory view recursively
+                        pathDisplay.innerText += `${entry.name}/`;
+                        await renderDirectory(entry);
+                    } else if (entry.kind === 'file') {
+                        // If it's a file, get binary file data and trigger a true download
+                        const file = await entry.getFile();
+                        triggerDownload(file);
+                    }
+                };
+                container.appendChild(card);
+            }
+        }
+
+        function triggerDownload(fileData) {
+            // Create a virtual download link element
+            const url = URL.createObjectURL(fileData);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileData.name; // Injects target filename
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up browser tab memory overhead
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

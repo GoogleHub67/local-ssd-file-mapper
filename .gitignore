@@ -1,0 +1,13 @@
+# OS-specific hidden metadata files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Common code editor configuration folders
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
